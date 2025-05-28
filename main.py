@@ -19,20 +19,13 @@ import nltk  # NLTK es una herramienta para procesar texto y analizar palabras.
 from nltk.tokenize import word_tokenize  # Se usa para dividir un texto en palabras individuales.
 from nltk.corpus import wordnet  # Nos ayuda a encontrar sinónimos de palabras.
 nltk.download('punkt_tab')
-
-# Indicamos la ruta donde NLTK buscará los datos descargados en nuestro computador. Se puede ver ejecutando nltk.download("punkt")
-# nltk.data.path.append("/opt/homebrew/lib/python3.9/site-packages/nltk_data")
-nltk.data.path.append("/Users/eduardoarbelaez/nltk_data")
-
-# Descargar las herramientas necesarias de NLTK para el analisis de palabras.abs
-
 nltk.download("punkt")  # Herramienta para dividir frases en palabras.
 nltk.download("wordnet")  # Herramienta para encontrar sinónimos de palabras en ingles.
 
 # Funcion para cargar ls peliculas desde un archivo CSV.
 
 
-def load_movies():
+def load_data():
     # Leemos el archivo que contiene la informacion de las peliculas y seleccionamos las columnas importantes
     df = pd.read_csv("Dataset/netflix_titles.csv")[['show_id', 'title', 'release_year', 'listed_in', 'rating', 'description']]
 
@@ -44,7 +37,7 @@ def load_movies():
 
 
 # Cargamos las peliculas al iniciar la API para no leer el archivo cada vez que alguien pregunte por ellas.
-movies_list = load_movies()
+movies_list = load_data()
 
 # Funcion para encontrar sinonimos de una palabra.
 
