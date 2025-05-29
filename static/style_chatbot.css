@@ -8,7 +8,7 @@ body {
   color: white;
 }
 
-/* Títulos en esquina superior izquierda */
+/* Títulos en esquina superior izquierda para el chatbot */
 .titles {
   position: absolute;
   top: 20px;
@@ -22,10 +22,6 @@ body {
   margin: 0;
 }
 
-.titles h2 {
-  font-size: 24px;
-  margin: 5px 0 0 0;
-}
 
 /* Capa general transparente */
 .overlay {
@@ -50,8 +46,8 @@ body {
   line-height: 1.6;
 }
 
-/* Botón en esquina superior derecha sin fondo */
-.chatbot-btn {
+/* Botón en esquina superior derecha que nos devuelve a la página principal */
+.home-btn {
   position: absolute;
   top: 20px;
   right: 20px;
@@ -60,12 +56,12 @@ body {
   border: 2px solid white;
   border-radius: 6px;
   padding: 8px 16px;
-  font-size: 14px;
+  font-size: 20px;
   cursor: pointer;
   transition: background-color 0.3s, color 0.3s;
 }
 
-.chatbot-btn:hover {
+.home-btn:hover {
   background-color: white;
   color: black;
 }

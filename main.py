@@ -37,15 +37,9 @@ async def get_home():
     with open("templates/home.html", "r", encoding="utf-8") as file:
         return HTMLResponse(file.read())
 
-
-@app.get('/', tags=['Home'])
-async def get_home():
-    with open("home.html", "r", encoding="utf-8") as file:
-        return HTMLResponse(file.read())
-
 # Ruta del chatbot
-@app.get('/chatbot', tags=['chatbot'])
-def chatbot(query: str):
-    # Dividimos la consulta en números, para entender mejor la intension del usuario
-    query_words = word_tokenize(query.lower())
+@app.get("/chatbot", response_class=HTMLResponse)
+async def get_chatbot():
+    with open("templates/chatbot.html", "r", encoding="utf-8") as file:
+        return HTMLResponse(file.read())
 
