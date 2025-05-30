@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chatbot</title>
+  <title>SoLuIA - Chatbot de Energías Renovables</title>
   <link rel="stylesheet" href="static/style_chatbot.css">
   <link rel="icon" type="image/png" href="static/favicon-96x96.png" sizes="96x96" />
   <link rel="icon" type="image/svg+xml" href="static/favicon.svg" />
@@ -12,17 +12,98 @@
   <link rel="manifest" href="static/site.webmanifest" />
 </head>
 <body>
+  <div class="background-overlay"></div>
+  
   <div class="titles">
     <h1>SoLuIA</h1>
+    <p class="subtitle">Tu asistente virtual en Energías Renovables</p>
   </div>
 
+  <a href="/">
+    <button class="home-btn">Regresar a página principal</button>
+  </a>
+
   <div class="overlay">
-    <div class="center-box">
-      <p>Aquí va el chatbot.</p>
+    <div id="name-form" class="center-box">
+      <h2>Bienvenido</h2>
+      <p>Por favor, ingresa tu nombre para comenzar:</p>
+      <input type="text" id="user-name" placeholder="Tu nombre">
+      <button onclick="setName()" class="primary-btn">Comenzar</button>
     </div>
-    <a href="/">
-      <button class="home-btn">Regresar a página principal</button>
-    </a>
+
+    <div id="chat-container" class="center-box" style="display: none;">
+      <div id="chat-messages"></div>
+      <div class="input-container">
+        <input type="text" id="user-input" placeholder="Escribe tu mensaje...">
+        <button onclick="sendMessage()" class="primary-btn">Enviar</button>
+      </div>
+    </div>
   </div>
+
+  <script>
+    async function setName() {
+      const nameInput = document.getElementById('user-name');
+      const name = nameInput.value.trim();
+      
+      if (!name) {
+        alert('Por favor, ingresa tu nombre');
+        return;
+      }
+
+      try {
+        const response = await fetch('/set_name', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ name: name })
+        });
+
+        const data = await response.json();
+        
+        document.getElementById('name-form').style.display = 'none';
+        document.getElementById('chat-container').style.display = 'block';
+        
+        const chatMessages = document.getElementById('chat-messages');
+        chatMessages.innerHTML = `<div class="message bot">${data.message}</div>`;
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Hubo un error al procesar tu nombre');
+      }
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById('user-input');
+      const message = input.value.trim();
+      
+      if (!message) return;
+
+      const chatMessages = document.getElementById('chat-messages');
+      chatMessages.innerHTML += `<div class="message user">${message}</div>`;
+      input.value = '';
+
+      try {
+        const response = await fetch(`/chatbot/message?query=${encodeURIComponent(message)}`);
+        const data = await response.json();
+        chatMessages.innerHTML += `<div class="message bot">${data.respuesta}</div>`;
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      } catch (error) {
+        console.error('Error:', error);
+        chatMessages.innerHTML += `<div class="message bot error">Lo siento, hubo un error al procesar tu mensaje</div>`;
+      }
+    }
+
+    document.getElementById('user-input').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        sendMessage();
+      }
+    });
+
+    document.getElementById('user-name').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        setName();
+      }
+    });
+  </script>
 </body>
 </html>
