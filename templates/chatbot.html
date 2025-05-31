@@ -65,7 +65,7 @@
         document.getElementById('chat-container').style.display = 'block';
         
         const chatMessages = document.getElementById('chat-messages');
-        chatMessages.innerHTML = `<div class="message bot">${data.message}</div>`;
+        chatMessages.innerHTML = `<div class="message bot">${data.message.replace(/\n/g, '<br>')}</div>`;
       } catch (error) {
         console.error('Error:', error);
         alert('Hubo un error al procesar tu nombre');
@@ -75,17 +75,34 @@
     async function sendMessage() {
       const input = document.getElementById('user-input');
       const message = input.value.trim();
-      
+
       if (!message) return;
 
       const chatMessages = document.getElementById('chat-messages');
       chatMessages.innerHTML += `<div class="message user">${message}</div>`;
       input.value = '';
 
+      // Si el usuario escribe "menu", vuelve al formulario de nombre
+      if (message.toLowerCase() === "salir") {
+        document.getElementById('chat-container').style.display = 'none';
+        document.getElementById('name-form').style.display = 'block';
+        chatMessages.innerHTML = '';
+        document.getElementById('user-name').value = '';
+        return;
+      }
+
       try {
         const response = await fetch(`/chatbot/message?query=${encodeURIComponent(message)}`);
         const data = await response.json();
-        chatMessages.innerHTML += `<div class="message bot">${data.respuesta}</div>`;
+
+        // Detecta si es mensaje de despedida
+        const despedida = data.respuesta.toLowerCase().includes('hasta pronto') || data.respuesta.toLowerCase().includes('gracias por usar');
+
+        if (despedida) {
+          chatMessages.innerHTML += `<div class="message bot">${data.respuesta.replace(/\n/g, '<br>')}</div>`;
+        } else {
+          chatMessages.innerHTML += `<div class="message bot">${data.respuesta.replace(/\n/g, '<br>')}<br><br><i>¿Deseas regresar al menú principal? Escribe <b>menu</b> o <b>salir</b> para terminar.</i></div>`;
+        }
         chatMessages.scrollTop = chatMessages.scrollHeight;
       } catch (error) {
         console.error('Error:', error);
