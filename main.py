@@ -2,13 +2,12 @@
 from fastapi import FastAPI, HTTPException  # FastAPI nos ayuda a crear la API, HTTPException maneja errores.
 from fastapi.responses import HTMLResponse, JSONResponse  # HTMLResponse para paginas web, JSONResponse para respuestas en formato JSON
 import pandas as pd  # Pandas es una herramienta para manejar datos en tablas.
-import nltk  # NLTK es una herramienta para procesar texto y analizar palabras.
 from fastapi.staticfiles import StaticFiles # Para servir archivos estáticos como CSS e imágenes.
 from fastapi.templating import Jinja2Templates # Para renderizar plantillas HTML.
-nltk.download('punkt_tab') # Herramienta para dividir frases en palabras.
-nltk.download("punkt")  # Herramienta para dividir frases en palabras.
-from nltk.tokenize import word_tokenize
-from pydantic import BaseModel
+import spacy  # Spacy es una biblioteca de procesamiento de lenguaje natural.
+from pydantic import BaseModel # Pydantic nos ayuda a definir modelos de datos y validar entradas.
+from typing import List # Importamos List para definir tipos de listas.
+import difflib  # Difflib nos ayuda a encontrar coincidencias entre cadenas de texto.
 #Datos de el csv: Departamento;Precio Panel Individual (COP);Costo Sistema Residencial (COP);Costo Sistema Comercial (COP);Notas
 
 # Funcion para cargar los datos desde un archivo CSV.
@@ -21,6 +20,9 @@ def load_data():
 
 # Cargamos los datos al iniciar la API para no leer el archivo cada vez que alguien pregunte por ellas.
 data_list = load_data()
+
+#definimos nuestra función de spacy en español
+func = spacy.load("es_core_news_md")  # Cargamos el modelo de lenguaje español de Spacy.
 
 # Creamos la aplicación FastAPI, que sera el motor de nuestra API.
 # Esto inicializa la API con un nombre y una version.
@@ -43,31 +45,8 @@ class NameRequest(BaseModel):
 async def get_home():
     with open("templates/home.html", "r", encoding="utf-8") as file:
         return HTMLResponse(file.read())
-    
 
-@app.get("/chatbot", response_class=HTMLResponse, tags=["páginas"])
-async def get_chatbot():
-    with open("templates/chatbot.html", "r", encoding="utf-8") as file:
-        return HTMLResponse(file.read())
-
-
-@app.post("/set_name", tags=["chatbot"])
-async def set_name(request: NameRequest):
-    if not request.name.strip():
-        raise HTTPException(status_code=400, detail="El nombre no puede estar vacío.")
-    user_name["name"] = request.name.strip()
-    return {"message": f"¡Hola, {user_name['name']}! cómo estás, soy tu asistente virtual que te orientará sobre Energías Renovables. Para ver las opciones disponibles escribe la palabra menu."}
-    
-
-@app.get("/chatbot/message", tags=["chatbot"])
-async def use_chatbot(query: str):
-    if not user_name["name"]:
-        return JSONResponse(content={
-            'respuesta': "Por favor, primero ingresa tu nombre para comenzar."
-        })
-
-    consulta = query.lower()
-    data = [
+data = [
         {"category": "1", "phrase": "¿Qué son los paneles solares?"},
         {"category": "1", "phrase": "¿Qué son las placas solares?"},
         {"category": "1", "phrase": "¿Qué son los modulos solares?"},
@@ -91,15 +70,21 @@ async def use_chatbot(query: str):
         {"category": "5", "phrase": "¿Cómo se instalan los paneles solares?"},
         {"category": "5", "phrase": "¿Cuál es el proceso para instalar paneles solares?"},
         {"category": "5", "phrase": "¿Qué pasos hay que seguir para instalar paneles solares?"},
+        {"category": "5", "phrase": "Instalar paneles solares"},
+        {"category": "5", "phrase": "Poner paneles solares"},
+        {"category": "5", "phrase": "Colocación de paneles solares"},
         {"category": "5", "phrase": "¿Cómo puedo poner paneles solares en mi casa?"},
         {"category": "6", "phrase": "¿Qué mantenimiento requieren los paneles solares?"},
         {"category": "6", "phrase": "¿Cómo se cuidan los paneles solares?"},
         {"category": "6", "phrase": "¿Qué cuidados necesitan los paneles solares?"},
         {"category": "6", "phrase": "¿Cada cuánto hay que revisar los paneles solares?"},
-        {"category": "7", "phrase": "¿Cuánto cuesta instalar paneles solares en mi departamento?"},
-        {"category": "7", "phrase": "¿Cuál es el precio de los paneles solares para un departamento?"},
-        {"category": "7", "phrase": "¿Qué valor tiene poner paneles solares en mi vivienda?"},
-        {"category": "7", "phrase": "¿Cuánto debo invertir para instalar paneles solares?"},
+        {"category": "7", "phrase": "¿Cuánto cuesta un panel solar?"},
+        {"category": "7", "phrase": "¿Cuánto vale un panel solar?"},
+        {"category": "7", "phrase": "¿Cuánto cuesta instalar paneles solares?"},
+        {"category": "7", "phrase": "¿Cuál es el precio de un panel solar?"},
+        {"category": "7", "phrase": "¿Cuál es el valor de los paneles solares?"},
+        {"category": "7", "phrase": "precio panel solar"},
+        {"category": "7", "phrase": "cuánto cuesta"},
         {"category": "8", "phrase": "¿Cuánto puedes ahorrar con paneles solares?"},
         {"category": "8", "phrase": "¿Qué ahorro ofrecen los paneles solares?"},
         {"category": "8", "phrase": "¿Cuánto dinero se ahorra con paneles solares?"},
@@ -114,27 +99,105 @@ async def use_chatbot(query: str):
         {"category": "10", "phrase": "¿En qué zonas rinden más los paneles solares?"},
     ]
     
-    responses = {
-        "1": "Las placas solares son un dispositivo de captación de radiación solar y es capaz de transformarla en calor para el uso de aguas residenciales (colector solar) o en el electricidad para la alimentación de los consumos energéticos de una vivienda o comercio (panel solar fotovoltaico). Su fabricación se basa en células fotovoltaicas de silicio.",
-        "2": "Los paneles solares funcionan convirtiendo la luz solar en electricidad. Utilizan células fotovoltaicas que generan corriente eléctrica cuando son expuestas a la luz solar.",
-        "3": "Existen dos tipos principales de paneles solares: los paneles solares térmicos, que calientan agua, y los paneles solares fotovoltaicos, que generan electricidad.",
-        "4": "Los paneles solares ofrecen varios beneficios, como la reducción de la factura de electricidad, la disminución de la huella de carbono y el aumento del valor de la propiedad.",
-        "5": "La instalación de paneles solares implica colocar los paneles en un lugar adecuado, conectarlos al sistema eléctrico y asegurarse de que estén orientados correctamente para maximizar la captación de luz solar.",
-        "6": "Los paneles solares requieren poco mantenimiento, pero es importante limpiarlos regularmente y revisar el sistema eléctrico para asegurarse de que todo funcione correctamente.",
-        "8": "El ahorro con paneles solares depende del tamaño del sistema y el consumo de electricidad, pero muchos propietarios informan ahorros significativos en sus facturas mensuales.",
-        "9": "Los paneles solares tienen un impacto ambiental positivo al reducir la dependencia de combustibles fósiles y disminuir las emisiones de gases de efecto invernadero.",
-        "10": "Los paneles solares son más efectivos en áreas con alta exposición solar, como regiones soleadas y desérticas, pero también pueden funcionar en climas nublados.",
-        }
+responses = {
+    "1": "Las placas solares son un dispositivo de captación de radiación solar y es capaz de transformarla en calor para el uso de aguas residenciales (colector solar) o en el electricidad para la alimentación de los consumos energéticos de una vivienda o comercio (panel solar fotovoltaico). Su fabricación se basa en células fotovoltaicas de silicio.",
+    "2": "Los paneles solares funcionan convirtiendo la luz solar en electricidad. Utilizan células fotovoltaicas que generan corriente eléctrica cuando son expuestas a la luz solar.",
+    "3": "Existen dos tipos principales de paneles solares: los paneles solares térmicos, que calientan agua, y los paneles solares fotovoltaicos, que generan electricidad.",
+    "4": "Los paneles solares ofrecen varios beneficios, como la reducción de la factura de electricidad, la disminución de la huella de carbono y el aumento del valor de la propiedad.",
+    "5": "La instalación de paneles solares implica colocar los paneles en un lugar adecuado, conectarlos al sistema eléctrico y asegurarse de que estén orientados correctamente para maximizar la captación de luz solar.",
+    "6": "Los paneles solares requieren poco mantenimiento, pero es importante limpiarlos regularmente y revisar el sistema eléctrico para asegurarse de que todo funcione correctamente.",
+    "8": "El ahorro con paneles solares depende del tamaño del sistema y el consumo de electricidad, pero muchos propietarios informan ahorros significativos en sus facturas mensuales.",
+    "9": "Los paneles solares tienen un impacto ambiental positivo al reducir la dependencia de combustibles fósiles y disminuir las emisiones de gases de efecto invernadero.",
+    "10": "Los paneles solares son más efectivos en áreas con alta exposición solar, como regiones soleadas y desérticas, pero también pueden funcionar en climas nublados.",
+    }
+
+@app.get("/chatbot", response_class=HTMLResponse, tags=["páginas"])
+async def get_chatbot():
+    with open("templates/chatbot.html", "r", encoding="utf-8") as file:
+        return HTMLResponse(file.read())
+
+
+@app.post("/set_name", tags=["chatbot"])
+async def set_name(request: NameRequest):
+    if not request.name.strip():
+        raise HTTPException(status_code=400, detail="El nombre no puede estar vacío.")
+    user_name["name"] = request.name.strip()
+    return {"message": f"¡Hola, {user_name['name']}! cómo estás, soy tu asistente virtual que te orientará sobre Energías Renovables."}
     
+def encontrar_categoria(pregunta_usuario: str) -> str | None:
+    pregunta_usuario = pregunta_usuario.lower().strip()
     
-    if consulta == "7":
-        return await precios_dep()
+    # Primero buscar coincidencias con palabras clave importantes
+    palabras_clave = {
+        "instal": "5",  # Para "instalar", "instalación", etc.
+        "funcion": "2",
+        "tipos": "3",
+        "beneficios": "4",
+        "manten": "6",  # Para "mantenimiento", "mantener"
+        "precio": "7",
+        "cuesta": "7",
+        "ahorr": "8",
+        "medio ambiente": "9",
+        "donde": "10"
+    }
     
-    else:   
+    for palabra, categoria in palabras_clave.items():
+        if palabra in pregunta_usuario:
+            return categoria
+    
+    # Luego buscar coincidencias exactas
+    for item in data:
+        if item["phrase"].lower() in pregunta_usuario or pregunta_usuario in item["phrase"].lower():
+            return item["category"]
+    
+    # Finalmente usar spaCy con umbral más bajo
+    doc_usuario = func(pregunta_usuario)
+    mejor_score = 0
+    mejor_categoria = None
+
+    for item in data:
+        doc_frase = func(item["phrase"].lower())
+        score = doc_usuario.similarity(doc_frase)
+        if score > mejor_score:
+            mejor_score = score
+            mejor_categoria = item["category"]
+
+    return mejor_categoria if mejor_score >= 0.6 else None  # Bajamos el umbral a 0.65
+
+@app.get("/chatbot/message", tags=["chatbot"])
+async def use_chatbot(query: str):
+    if not user_name["name"]:
         return JSONResponse(content={
-            'respuesta': f"""Encantada de ayudarte {user_name['name']}.
-            {responses[consulta]}"""
+            'respuesta': "Por favor, primero ingresa tu nombre para comenzar."
         })
+
+    categoria = encontrar_categoria(query)
+
+    if not categoria:
+        # Buscar preguntas que contengan palabras similares a la consulta
+        palabras_consulta = query.lower().split()
+        sugerencias = []
+        
+        for item in data:
+            if any(palabra in item["phrase"].lower() for palabra in palabras_consulta):
+                if item["phrase"] not in sugerencias and len(sugerencias) < 3:
+                    sugerencias.append(item["phrase"])
+        
+        # Si no encontramos sugerencias relacionadas, mostrar preguntas generales
+        if not sugerencias:
+            sugerencias = [item["phrase"] for item in data[:3]]
+        
+        return {
+            "respuesta": f"Lo siento, no entendí tu pregunta. ¿Podrías reformularla?\n\n"
+                        f"Algunas preguntas relacionadas que puedo responder:\n- " + 
+                        "\n- ".join(sugerencias)
+        }
+
+    if categoria == "7":
+        return await precios_dep()
+
+    respuesta = responses.get(categoria, "Lo siento, no tengo una respuesta para eso.")
+    return {"respuesta": respuesta}
 
 async def precios_dep():
     response = "Los precios de los paneles solares por departamento son:\n"

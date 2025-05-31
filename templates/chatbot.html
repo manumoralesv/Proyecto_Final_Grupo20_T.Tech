@@ -101,7 +101,7 @@
         if (despedida) {
           chatMessages.innerHTML += `<div class="message bot">${data.respuesta.replace(/\n/g, '<br>')}</div>`;
         } else {
-          chatMessages.innerHTML += `<div class="message bot">${data.respuesta.replace(/\n/g, '<br>')}<br><br><i>¿Deseas regresar al menú principal? Escribe <b>menu</b> o <b>salir</b> para terminar.</i></div>`;
+          chatMessages.innerHTML += `<div class="message bot">${data.respuesta.replace(/\n/g, '<br>')}<br><br><i>¿Deseas realizar otra pregunta? Si no, escribe <b>salir</b> para terminar.</i></div>`;
         }
         chatMessages.scrollTop = chatMessages.scrollHeight;
       } catch (error) {
