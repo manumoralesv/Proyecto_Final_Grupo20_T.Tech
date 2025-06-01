@@ -46,6 +46,8 @@ async def get_home():
     with open("templates/home.html", "r", encoding="utf-8") as file:
         return HTMLResponse(file.read())
 
+#Creamos la lista de preguntas frecuentes y sus respuestas
+# Esta lista contiene preguntas frecuentes sobre paneles solares, organizadas por categorías.
 data = [
         {"category": "1", "phrase": "¿Qué son los paneles solares?"},
         {"category": "1", "phrase": "¿Qué son las placas solares?"},
@@ -97,7 +99,19 @@ data = [
         {"category": "10", "phrase": "¿En qué lugares funcionan mejor los paneles solares?"},
         {"category": "10", "phrase": "¿Dónde conviene instalar paneles solares?"},
         {"category": "10", "phrase": "¿En qué zonas rinden más los paneles solares?"},
-    ]
+        {"category": "11", "phrase": "¿Existen subsidios para paneles solares en Colombia?"},
+        {"category": "11", "phrase": "¿Hay ayudas gubernamentales para instalar paneles solares?"},
+        {"category": "11", "phrase": "¿Cómo financiar paneles solares?"},
+        {"category": "12", "phrase": "¿Cuánto duran los paneles solares?"},
+        {"category": "12", "phrase": "¿Qué garantía tienen los paneles solares?"},
+        {"category": "12", "phrase": "Vida útil de un panel solar"},
+        {"category": "13", "phrase": "¿Los paneles solares funcionan con cualquier techo?"},
+        {"category": "13", "phrase": "¿Puedo instalar paneles solares en un apartamento?"},
+        {"category": "13", "phrase": "Requisitos para instalar paneles solares"},
+        {"category": "14", "phrase": "¿Funcionan los paneles solares cuando está nublado?"},
+        {"category": "14", "phrase": "¿Lluvia y paneles solares?"},
+        {"category": "14", "phrase": "Eficiencia en climas húmedos"},
+        ]
     
 responses = {
     "1": "Las placas solares son un dispositivo de captación de radiación solar y es capaz de transformarla en calor para el uso de aguas residenciales (colector solar) o en el electricidad para la alimentación de los consumos energéticos de una vivienda o comercio (panel solar fotovoltaico). Su fabricación se basa en células fotovoltaicas de silicio.",
@@ -109,6 +123,10 @@ responses = {
     "8": "El ahorro con paneles solares depende del tamaño del sistema y el consumo de electricidad, pero muchos propietarios informan ahorros significativos en sus facturas mensuales.",
     "9": "Los paneles solares tienen un impacto ambiental positivo al reducir la dependencia de combustibles fósiles y disminuir las emisiones de gases de efecto invernadero.",
     "10": "Los paneles solares son más efectivos en áreas con alta exposición solar, como regiones soleadas y desérticas, pero también pueden funcionar en climas nublados.",
+    "11": "En Colombia, existen programas de subsidios y financiación para paneles solares, como el 'Programa de Energización Rural' y líneas de crédito verde. Algunas alcaldías también ofrecen incentivos fiscales.",
+    "12": "Los paneles solares tienen una vida útil de '25 a 30 años'. La mayoría incluyen garantías de 10 a 12 años para rendimiento (80% de eficiencia mínima).",
+    "13": "Los paneles solares son compatibles con la mayoría de techos (inclinados o planos). En apartamentos, se requiere permiso de la copropiedad y espacio adecuado en áreas comunes.",
+    "14": "Sí, los paneles solares funcionan en días nublados, aunque su eficiencia disminuye un '15-25%'. La lluvia incluso ayuda a limpiar la superficie de los paneles.",
     }
 
 @app.get("/chatbot", response_class=HTMLResponse, tags=["páginas"])
@@ -129,8 +147,11 @@ def encontrar_categoria(pregunta_usuario: str) -> str | None:
     
     # Primero buscar coincidencias con palabras clave importantes
     palabras_clave = {
+        "Qué son": "1",
+        "Que son": "1",
         "instal": "5",  # Para "instalar", "instalación", etc.
         "funcion": "2",
+        "función": "2",
         "tipos": "3",
         "beneficios": "4",
         "manten": "6",  # Para "mantenimiento", "mantener"
@@ -138,8 +159,25 @@ def encontrar_categoria(pregunta_usuario: str) -> str | None:
         "cuesta": "7",
         "ahorr": "8",
         "medio ambiente": "9",
-        "donde": "10"
-    }
+        "efectiv": "10", # Para "efectividad", "efectivo"
+        "subsidio": "11",
+        "financiacion": "11",
+        "financiación": "11",
+        "ayuda": "11",
+        "credito": "11",
+        "crédito": "11",
+        "dura": "12",
+        "vida util": "12",
+        "garantia": "12",
+        "garantía": "12",
+        "techo": "13",
+        "apartamento": "13",
+        "edificio": "13",
+        "nublado": "14",
+        "lluvia": "14",
+        "clima": "14",
+        "invierno": "14",
+        }
     
     for palabra, categoria in palabras_clave.items():
         if palabra in pregunta_usuario:
@@ -194,20 +232,36 @@ async def use_chatbot(query: str):
         }
 
     if categoria == "7":
-        return await precios_dep()
+        return await precios_dep(query)  # Pasar la consulta a la función de precios 
 
     respuesta = responses.get(categoria, "Lo siento, no tengo una respuesta para eso.")
     return {"respuesta": respuesta}
 
-async def precios_dep():
+async def precios_dep(query: str = None):
+    if query:
+        # Buscar el departamento en la consulta
+        departamento_encontrado = None
+        for item in data_list:
+            if item['Departamento'].lower() in query.lower():
+                departamento_encontrado = item
+                break
+        
+        if departamento_encontrado:
+            response = (
+                f"Precios en el departamento de {departamento_encontrado['Departamento']}:\n"
+                f"Panel Individual: {departamento_encontrado['Precio Panel Individual (COP)']} COP\n"
+                f"Sistema Residencial: {departamento_encontrado['Costo Sistema Residencial (COP)']} COP\n"
+                f"Sistema Comercial: {departamento_encontrado['Costo Sistema Comercial (COP)']} COP"
+            )
+            return JSONResponse(content={'respuesta': response})
+    
+    # Si no se especificó un departamento o no se encontró, mostrar todos
     response = "Los precios de los paneles solares por departamento son:\n"
     for item in data_list:
         response += (
-        f"\nDepartamento de {item['Departamento']}: "
+            f"\nDepartamento de {item['Departamento']}: "
             f"Individual {item['Precio Panel Individual (COP)']} COP, "
             f"Sistema residencial {item['Costo Sistema Residencial (COP)']} COP, "
-            f"Sistema comercial {item['Costo Sistema Comercial (COP)']} COP\n"
+            f"Sistema comercial {item['Costo Sistema Comercial (COP)']} COP"
         )
-    return JSONResponse(content={
-        'respuesta': response
-    })
+    return JSONResponse(content={'respuesta': response})
