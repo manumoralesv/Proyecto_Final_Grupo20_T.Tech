@@ -16,3 +16,6 @@ API de consulta inteligente sobre paneles solares, que cuenta con un chatbot int
 - **static**: Carpeta que cuenta con todos los recursos decorativos como icono de la página o los archivos .css usados para la estética de la API
 - **templates**: Carpeta que cuenta con los archivos .html usados para las ventanas independientes de home y chatbot.
 - **main.py**: Archivo .py el cual cuenta con la estructura prinicpal de creación y uso de la API
+
+## 📎 Notas
+- **La API fué hecha y probada en el puerto 5500 por lo que se recomienda usar este código para usarla 'uvicorn main:app --port 5500'**
