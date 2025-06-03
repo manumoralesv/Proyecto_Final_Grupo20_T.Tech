@@ -7,7 +7,6 @@ from fastapi.templating import Jinja2Templates # Para renderizar plantillas HTML
 import spacy  # Spacy es una biblioteca de procesamiento de lenguaje natural.
 from pydantic import BaseModel # Pydantic nos ayuda a definir modelos de datos y validar entradas.
 from typing import List # Importamos List para definir tipos de listas.
-import difflib  # Difflib nos ayuda a encontrar coincidencias entre cadenas de texto.
 import sys
 from typing import Union
 #Datos de el csv: Departamento;Precio Panel Individual (COP);Costo Sistema Residencial (COP);Costo Sistema Comercial (COP);Notas
@@ -53,6 +52,8 @@ async def get_home():
 data = [
         {"category": "1", "phrase": "¿Qué son los paneles solares?"},
         {"category": "1", "phrase": "¿Qué son las placas solares?"},
+        {"category": "1", "phrase": "¿Qué es una placa solar?"},
+        {"category": "1", "phrase": "¿Qué es un panel solar?"},
         {"category": "1", "phrase": "¿Qué son los modulos solares?"},
         {"category": "1", "phrase": "¿Para qué sirven los paneles solares?"},
         {"category": "1", "phrase": "¿Cuál es la función de un panel solar?"},
