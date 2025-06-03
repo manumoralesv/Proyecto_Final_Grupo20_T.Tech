@@ -9,16 +9,37 @@ body {
 }
 
 /* Títulos en esquina superior izquierda */
-.titles {
+/* .titles {
   position: absolute;
   top: 20px;
   left: 20px;
   text-align: left;
   color: rgb(9, 64, 13);
+  background-color: rgba(94, 94, 94, 0.562);
 }
 
 .titles h1 {
   font-size: 60px;
+  margin: 0;
+}
+
+.titles h2 {
+  font-size: 30px;
+  margin: 5px 0 0 0;
+} */
+
+/* Títulos en esquina superior izquierda para el chatbot */
+.titles {
+  text-align: left;
+  padding: 20px;
+  background-color: rgba(94, 94, 94, 0.562);
+  color: rgb(15, 113, 22);
+  margin-bottom: 20px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.titles h1 {
+  font-size: 48px;
   margin: 0;
 }
 

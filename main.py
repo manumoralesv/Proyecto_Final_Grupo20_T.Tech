@@ -8,6 +8,8 @@ import spacy  # Spacy es una biblioteca de procesamiento de lenguaje natural.
 from pydantic import BaseModel # Pydantic nos ayuda a definir modelos de datos y validar entradas.
 from typing import List # Importamos List para definir tipos de listas.
 import difflib  # Difflib nos ayuda a encontrar coincidencias entre cadenas de texto.
+import sys
+from typing import Union
 #Datos de el csv: Departamento;Precio Panel Individual (COP);Costo Sistema Residencial (COP);Costo Sistema Comercial (COP);Notas
 
 # Funcion para cargar los datos desde un archivo CSV.
@@ -141,10 +143,17 @@ async def set_name(request: NameRequest):
         raise HTTPException(status_code=400, detail="El nombre no puede estar vacío.")
     user_name["name"] = request.name.strip()
     return {"message": f"¡Hola, {user_name['name']}! cómo estás, soy tu asistente virtual que te orientará sobre Energías Renovables."}
-    
-def encontrar_categoria(pregunta_usuario: str) -> str | None:
+
+# Verificamos la version de python para usar el tipo de dato str | None o Union[str, None]
+if sys.version_info >= (3, 10):
+    ReturnType = str | None
+else:
+    ReturnType = Union[str, None]
+
+
+def encontrar_categoria(pregunta_usuario: str) -> ReturnType:
     pregunta_usuario = pregunta_usuario.lower().strip()
-    
+
     # Primero buscar coincidencias con palabras clave importantes
     palabras_clave = {
         "Qué son": "1",
