@@ -196,8 +196,10 @@ def encontrar_categoria(pregunta_usuario: str) -> ReturnType:
 
     # Primero buscar coincidencias con palabras clave importantes
     palabras_clave = {
-        "Qué son": "1",
-        "Que son": "1",
+        "qué son": "1",
+        "que son": "1",
+        "qué es": "1",
+        "que es": "1",
         "instal": "5",  # Para "instalar", "instalación", etc.
         "funcion": "2",
         "función": "2",
@@ -240,7 +242,7 @@ def encontrar_categoria(pregunta_usuario: str) -> ReturnType:
     
     for palabra, categoria in palabras_clave.items():
         if palabra in pregunta_usuario:
-            return categoria
+            return categoria.lower()  # Retornamos la categoría en minúsculas
     
     # Luego buscar coincidencias exactas
     for item in data:
