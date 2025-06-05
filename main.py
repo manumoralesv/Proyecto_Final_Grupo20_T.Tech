@@ -310,7 +310,7 @@ async def precios_dep(query: str = None):
                 f"Precios en el departamento de {departamento_encontrado['Departamento']}:\n"
                 f"Panel Individual: {departamento_encontrado['Precio Panel Individual (COP)']} COP\n"
                 f"Sistema Residencial: {departamento_encontrado['Costo Sistema Residencial (COP)']} COP\n"
-                f"Sistema Comercial: {departamento_encontrado['Costo Sistema Comercial (COP)']} COP"
+                f"Notas: {departamento_encontrado['Notas']}\n"
             )
             return JSONResponse(content={'respuesta': response})
     
